@@ -1,5 +1,5 @@
--- semaine 6.1
-
+-- semaine 6
+--1
 DROP SCHEMA IF EXISTS gestion_evenements CASCADE;
 CREATE SCHEMA gestion_evenements;
 
@@ -63,8 +63,10 @@ CREATE TABLE gestion_evenements.reservations(
 
 
 
--- semaine 6.2
 
+-- semaine 6
+
+--2
 --ajouter une salle
 CREATE OR REPLACE FUNCTION gestion_evenements.ajouterSalle(_nom VARCHAR, _ville VARCHAR,_capacite INT ) RETURNS INTEGER AS $$
     DECLARE
@@ -135,6 +137,7 @@ SELECT gestion_evenements.ajouterClient('lolo','lolo@gmail.com','lolo');
 
 --semaine 7
 
+--3
 --ajouter un evenement
 CREATE OR REPLACE FUNCTION gestion_evenements.ajouterEvenement(_salle INT, _date_evenement DATE,_nom VARCHAR,_prix MONEY,_festival INTEGER) RETURNS VOID AS $$
     BEGIN
@@ -151,6 +154,7 @@ $$ LANGUAGE plpgsql;
 --test
 SELECT gestion_evenements.ajouterEvenement(1,(CURRENT_DATE+1)::DATE,'lolo',50.00::MONEY,1);
 
+--4
 --ajouter un concert
 CREATE OR REPLACE FUNCTION gestion_evenements.ajouterConcert(_artiste INT, _date_evenement DATE, _heure_debut TIME,_salle INT) RETURNS VOID AS $$
     BEGIN
@@ -172,11 +176,12 @@ CREATE OR REPLACE FUNCTION gestion_evenements.ajouterConcert(_artiste INT, _date
 $$ LANGUAGE plpgsql;
 
 --test
-SELECT gestion_evenements.ajouterConcert(1,'2024-12-05'::DATE,'20:01'::TIME,1); /*ERROR*/
+SELECT gestion_evenements.ajouterConcert(1,'2024-12-12'::DATE,'20:01'::TIME,1); /*ERROR*/
 
 
 --semaine 8
 
+--5
 --procédure d'ajout d'un événement
 CREATE OR REPLACE FUNCTION gestion_evenements.ajouter_evenement(_id_salle INTEGER,_date_evenement DATE, _nom VARCHAR, _prix NUMERIC, _id_festival INTEGER)RETURNS VOID AS $$
     BEGIN
@@ -274,6 +279,13 @@ CREATE OR REPLACE FUNCTION gestion_evenements.tg_bf_ajouter_reservation() RETURN
         SET nb_places_restantes = nb_places_restantes - NEW.nb_tickets
         WHERE salle = NEW.salle AND date_evenement = NEW.date_evenement;
 
+        -- initialisation du numéro de réservation
+        SELECT COUNT(*) + 1
+        FROM gestion_evenements.reservations r
+        WHERE r.date_evenement = NEW.date_evenement
+        AND r.salle = NEW.salle
+        INTO NEW.num_reservation;
+
         RETURN NEW;
 
     END
@@ -282,8 +294,46 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_bf_ajouter_reservation BEFORE INSERT ON gestion_evenements.reservations
 FOR EACH ROW EXECUTE PROCEDURE gestion_evenements.tg_bf_ajouter_reservation();
+--test
+SELECT gestion_evenements.ajouter_reservation(1, '2024-12-12', 2, 1);
 
 
+--semaine 9
 
+--6
+--procédure de réservation de x places pr tous les events d'un festival
+CREATE OR REPLACE FUNCTION gestion_evenements.reserver_festival(_id_festival INTEGER, _id_client INTEGER, _nb_places INTEGER) RETURNS VOID AS $$
+    DECLARE
+        _evenement RECORD;
+    BEGIN
+        FOR _evenement IN
+            SELECT e.date_evenement, e.salle FROM gestion_evenements.evenements e
+            WHERE e.festival=_id_festival
+        LOOP
+            PERFORM gestion_evenements.ajouter_reservation(_evenement.salle,_evenement.date_evenement, _nb_places,_id_client);
+        END LOOP;
+    END
+$$ LANGUAGE plpgsql;
 
+--7
+--view: afficher les festivals futurs
+CREATE OR REPLACE VIEW gestion_evenements.festival_view AS
+SELECT f.nom, MIN(e.date_evenement) as "first_event", MAX(e.date_evenement) as "last_event",SUM(e.prix) as "prix_total"
+FROM gestion_evenements.festivals f , gestion_evenements.evenements e
+WHERE f.id_festival=e.festival
+GROUP BY f.nom
+HAVING MIN(e.date_evenement) >= CURRENT_DATE
+ORDER BY 3;
 
+--test
+SELECT * FROM gestion_evenements.festival_view;
+
+--view: afficher les réservation
+CREATE OR REPLACE VIEW gestion_evenements.reservation_view AS
+SELECT e.nom,e.salle,r.num_reservation, r.nb_tickets, r.client, e.date_evenement
+FROM gestion_evenements.evenements e, gestion_evenements.reservations r
+WHERE r.salle=e.salle AND r.date_evenement=e.date_evenement
+ORDER BY e.date_evenement;
+
+--test
+SELECT * FROM gestion_evenements.reservation_view;
