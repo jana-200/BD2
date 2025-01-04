@@ -354,7 +354,10 @@ SELECT * FROM gestion_evenements.reservations_view WHERE client=1;
 
 
 
+
 --semaine 10
+
+
 
 --8
 --view: afficher les événements d'une salle
@@ -370,6 +373,7 @@ GROUP BY e.nom, e.date_evenement, e.salle, e.prix, e.nb_places_restantes;
 SELECT *
 FROM gestion_evenements.evenements_view
 WHERE id_salle_event = 1;
+
 
 --9
 --view: afficher les événements d'un artiste
