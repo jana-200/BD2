@@ -343,11 +343,11 @@ ORDER BY 3;
 SELECT * FROM gestion_evenements.festival_view;
 
 --view: afficher les réservation
-CREATE OR REPLACE VIEW gestion_evenements.reservation_view AS
-SELECT e.nom,e.salle,r.num_reservation, r.nb_tickets, r.client, e.date_evenement
-FROM gestion_evenements.evenements e, gestion_evenements.reservations r
-WHERE r.salle=e.salle AND r.date_evenement=e.date_evenement
-ORDER BY e.date_evenement;
+CREATE OR REPLACE VIEW gestion_evenements.reservations_view AS
+SELECT ev.nom, res.date_evenement, res.salle, res.num_reservation, res.nb_tickets, res.client
+FROM gestion_evenements.reservations res, gestion_evenements.evenements ev
+WHERE ev.salle=res.salle AND res.date_evenement=ev.date_evenement
+ORDER BY res.date_evenement;
 
 --test
-SELECT * FROM gestion_evenements.reservation_view;
+SELECT * FROM gestion_evenements.reservations_view WHERE client=1;
