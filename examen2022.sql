@@ -6,7 +6,7 @@ CREATE TABLE examen2022.articles(
     nom_article VARCHAR(50) NOT NULL CHECK (trim(nom_article) <> ''),
     prix INTEGER NOT NULL CHECK ( prix >0 ),
     poids INTEGER NOT NULL CHECK(poids>0),
-    quantite_max INTEGER
+    quantite_max INTEGER CHECk(quantite_max>0) DEFAULT NULL
 );
 
 CREATE TABLE examen2022.commandes(
@@ -14,7 +14,7 @@ CREATE TABLE examen2022.commandes(
     nom_client VARCHAR(50) NOT NULL CHECK (trim(nom_client) <> ''),
     date_commande DATE NOT NULL,
     type VARCHAR(50) NOT NULL CHECK(type IN ('livraison', 'à emporter')),
-    poids_total INTEGER DEFAULT 0
+    poids_total INTEGER CHECk(poids_total>0) DEFAULT 0
 
 );
 
