@@ -343,11 +343,48 @@ ORDER BY 3;
 SELECT * FROM gestion_evenements.festival_view;
 
 --view: afficher les réservation
-CREATE OR REPLACE VIEW gestion_evenements.reservation_view AS
-SELECT e.nom,e.salle,r.num_reservation, r.nb_tickets, r.client, e.date_evenement
-FROM gestion_evenements.evenements e, gestion_evenements.reservations r
-WHERE r.salle=e.salle AND r.date_evenement=e.date_evenement
-ORDER BY e.date_evenement;
+CREATE OR REPLACE VIEW gestion_evenements.reservations_view AS
+SELECT ev.nom, res.date_evenement, res.salle, res.num_reservation, res.nb_tickets, res.client
+FROM gestion_evenements.reservations res, gestion_evenements.evenements ev
+WHERE ev.salle=res.salle AND res.date_evenement=ev.date_evenement
+ORDER BY res.date_evenement;
 
 --test
-SELECT * FROM gestion_evenements.reservation_view;
+SELECT * FROM gestion_evenements.reservations_view WHERE client=1;
+
+
+
+
+--semaine 10
+
+
+
+--8
+--view: afficher les événements d'une salle
+CREATE OR REPLACE VIEW gestion_evenements.evenements_view AS
+SELECT e.nom AS "nom_event", e.date_evenement AS "date_event", e.salle AS "id_salle_event",
+        STRING_AGG(a.nom, '+') AS "artistes",
+       e.prix, e.nb_places_restantes = 0 AS "complet"
+FROM gestion_evenements.evenements e
+    LEFT JOIN gestion_evenements.concerts co ON e.date_evenement = co.date_evenement AND e.salle = co.salle
+    LEFT JOIN gestion_evenements.artistes a ON a.id_artiste = co.artiste
+GROUP BY e.nom, e.date_evenement, e.salle, e.prix, e.nb_places_restantes;
+
+SELECT *
+FROM gestion_evenements.evenements_view
+WHERE id_salle_event = 1;
+
+
+--9
+--view: afficher les événements d'un artiste
+CREATE OR REPLACE VIEW gestion_evenements.afficher_events_artiste AS
+SELECT ev.nom, ev.date_evenement,ev.salle, STRING_AGG(ar.nom,'+') AS "artistes", ev.prix, ev.nb_places_restantes=0, ar.id_artiste
+FROM gestion_evenements.evenements ev
+    LEFT JOIN gestion_evenements.concerts c ON ev.salle=c.salle AND ev.date_evenement=c.date_evenement
+    LEFT JOIN gestion_evenements.artistes ar ON ar.id_artiste=c.artiste
+GROUP BY ev.nom, ev.date_evenement, ev.salle, ev.prix, ev.nb_places_restantes=0,ar.id_artiste
+ORDER BY ev.date_evenement;
+
+SELECT *
+FROM gestion_evenements.afficher_events_artiste
+WHERE id_artiste=1;

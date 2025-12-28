@@ -53,7 +53,7 @@ WHERE t1.pub_id=t2.pub_id AND t1.pubdate=t2.pubdate AND t1.title_id < t2.title_i
 
 --13
 SELECT au.* FROM authors au
-WHERE 1< (SELECT COUNT(DISTINCT pub_id) FROM titles tit, titleauthor ta WHERE tit.title_id=ta.title_id);
+WHERE 1< (SELECT COUNT(DISTINCT pub_id) FROM titles tit, titleauthor ta WHERE tit.title_id=ta.title_id and ta.au_id=au.au_id);
 
 --14
 SELECT tit.title FROM titles tit, salesdetail sd, sales s
